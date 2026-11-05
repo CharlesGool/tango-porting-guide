@@ -4,7 +4,7 @@
 
 ## 32 位 zygote
 
-做法参照小米 14 Ultra (对照见[调研记录](../../../doc/research.md#小米-14-ultra)):
+做法参照小米 14 Ultra (对照见[调研记录](../../../../doc/research.md#小米-14-ultra)):
 
 - **不改 `ro.zygote`**, 保持 vendor 的 `zygote64`. init 因此不 import `init.zygote64_32.rc` 和 `init.boringssl.zygote64_32.rc`, system 的两个 32 位自检不会触发.
 - `files/tango-zygote32.rc` 定义服务 `tango_zygote32`, 命令行抄自原版 `zygote_secondary`, 改三处:
@@ -33,7 +33,7 @@
 
 `files/tango-guard.sh` 在 `post-fs-data` 以 `exec_start` 运行 (herald 域, 早于 `zygote-start`), 默认 (`ENFORCE=0`) 只执行让 32 位能运行的必要步骤, 失败只记录日志:
 
-1. 写 `0` 到 `/proc/sys/walt/panic_on_walt_bug`. 联想 `sched-walt.ko` 在任务带 `TIF_32BIT` 且目标核不在 32 位核掩码中时触发 `BUG()`; 本机没有 32 位核, `tango32` 转发 compat ioctl 时临时置位 `TIF_32BIT`, 任务一迁移就整机重启 (见[调研记录](../../../doc/research.md#真因-walt-32-位任务自检)).
+1. 写 `0` 到 `/proc/sys/walt/panic_on_walt_bug`. 联想 `sched-walt.ko` 在任务带 `TIF_32BIT` 且目标核不在 32 位核掩码中时触发 `BUG()`; 本机没有 32 位核, `tango32` 转发 compat ioctl 时临时置位 `TIF_32BIT`, 任务一迁移就整机重启 (见[调研记录](../../../../doc/research.md#真因-walt-32-位任务自检)).
 2. `/dev/tango32` 不存在时再 `insmod` 一次.
 3. 置 `tango.zygote32=1`, 运行 `files/tango-export.sh` 导出日志.
 
@@ -49,7 +49,7 @@
 | --- | --- |
 | `heraldctl tango status` | 模块, 32 位 ABI, 是否回退及原因 |
 | `heraldctl tango retry` | 删除回退标记, 下次开机重新带 32 位 |
-| `heraldctl tango off` | 写回退标记, 下次开机按纯 64 位. 默认 `ENFORCE=0` 时不生效, 见 [LOG 缺陷](../../../doc/LOG.md#缺陷) |
+| `heraldctl tango off` | 写回退标记, 下次开机按纯 64 位. 默认 `ENFORCE=0` 时不生效, 见 [LOG 缺陷](../../../../doc/LOG.md#缺陷) |
 | `heraldctl tango logs` | 导出日志到 `/data/local/tmp/tango_log` |
 | `heraldctl tango zygote32 start\|stop` | 回退状态下手动起停 32 位 zygote, 用于隔离测试 |
 

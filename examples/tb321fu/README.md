@@ -49,8 +49,8 @@ adb shell heraldctl tango status
 - **ART GC**: `ro.dalvik.vm.enable_uffd_gc=false` 让 64 位 ART 也改用 CC GC; 改动后第一次开机 odrefresh 重编启动镜像.
 - **预翻译**: 没做. 每个 32 位库首次运行时较慢, 之后有缓存.
 
-调研过程, 与小米 14 Ultra 和一加 12 的对照, 以及整机重启的真因见 [调研记录](../doc/research.md).
+调研过程, 与小米 14 Ultra 和一加 12 的对照, 以及整机重启的真因见 [调研记录](../../doc/research.md).
 
 ## 授权
 
-`tango_translator`, Tango 集成包, `tango32.ko` 和小米的 32 位库都**禁止**进仓库, 也**禁止**放进分发给他人的刷机包. 仓库只放小米库的文件名和 SHA-256 清单. 详见 [第三方声明](../doc/THIRD_PARTY_NOTICES.md).
+`tango_translator`, Tango 集成包, `tango32.ko` 和小米的 32 位库都**禁止**进仓库, 也**禁止**放进分发给他人的刷机包. 仓库只放小米库的文件名和 SHA-256 清单. 详见 [第三方声明](../../doc/THIRD_PARTY_NOTICES.md).

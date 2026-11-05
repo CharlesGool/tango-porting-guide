@@ -31,10 +31,10 @@ metadata:
 | 组件名称 | 版本或哈希 | 上游地址 | 许可证类型 | 使用方式 | 版权归属 | 发布合规义务 | 核验日期 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Tango Binary Translator (`tango_translator`) | v2.1.0 | https://www.amanieusystems.com/ | 专有 (Tango EULA) | 构建输入 `TANGO_PKG`, 不在仓库中 | Amanieu Systems Ltd | **禁止**复制, 再分发和用于商业目的; 使用者自行取得并接受 EULA | 2026-11-05 |
-| Tango 集成文件 (`binfmt_misc` 注册串, `tango.te`, `te_macros`) | v2.1.0 集成包 | https://www.amanieusystems.com/ | 未单独声明, 不确定是否受 EULA 约束 | 改写后进入 `patch/parts/001.core/files/tango-binfmt.rc` 和 `patch/parts/002.sepolicy/tango.cil` | Amanieu Systems Ltd | 不确定, 见合规审查 | 2026-11-05 |
+| Tango 集成文件 (`binfmt_misc` 注册串, `tango.te`, `te_macros`) | v2.1.0 集成包 | https://www.amanieusystems.com/ | 未单独声明, 不确定是否受 EULA 约束 | 改写后进入 `examples/tb321fu/parts/001.core/files/tango-binfmt.rc` 和 `examples/tb321fu/parts/002.sepolicy/tango.cil` | Amanieu Systems Ltd | 不确定, 见合规审查 | 2026-11-05 |
 | `tango32` 内核模块 | v2.1.0 集成包 | https://www.amanieusystems.com/ | GPL-2.0 (源文件 SPDX 标记) | 源码和编好的 `tango32.ko` 都是构建输入, 不在仓库中 | Amanieu Systems Ltd | 分发含 `tango32.ko` 的镜像时需提供对应源码 | 2026-11-05 |
-| 小米 14 Ultra 32 位 GPU 和 gralloc 库 | xiaomi.eu OS3.0.304.0, 30 个文件, 哈希见 `patch/parts/004.vendor-lib32/manifest.sha256` | 小米官方固件 | 专有 | 构建输入 `XIAOMI_LIB32_DIR`, 仓库只含文件名和 SHA-256 | 小米, 高通 | **禁止**进仓库和分发的刷机包 | 2026-11-05 |
-| AOSP `init.zygote64_32.rc` 的 `zygote_secondary` 服务定义 | Android 15 | https://android.googlesource.com/platform/system/core/ | Apache-2.0 | 修改后进入 `patch/parts/005.zygote32/files/tango-zygote32.rc` | The Android Open Source Project | 保留许可证文本, 标明修改 | 2026-11-05 |
+| 小米 14 Ultra 32 位 GPU 和 gralloc 库 | xiaomi.eu OS3.0.304.0, 30 个文件, 哈希见 `examples/tb321fu/parts/004.vendor-lib32/manifest.sha256` | 小米官方固件 | 专有 | 构建输入 `XIAOMI_LIB32_DIR`, 仓库只含文件名和 SHA-256 | 小米, 高通 | **禁止**进仓库和分发的刷机包 | 2026-11-05 |
+| AOSP `init.zygote64_32.rc` 的 `zygote_secondary` 服务定义 | Android 15 | https://android.googlesource.com/platform/system/core/ | Apache-2.0 | 修改后进入 `examples/tb321fu/parts/005.zygote32/files/tango-zygote32.rc` | The Android Open Source Project | 保留许可证文本, 标明修改 | 2026-11-05 |
 
 ### 许可证文本
 
@@ -44,7 +44,7 @@ metadata:
 
 ### 源代码提供
 
-本仓库不分发 `tango32.ko`. 使用者分发含 `tango32.ko` 的镜像时, 需要按 GPL-2.0 提供 Tango 集成包中的 `kernel-module/` 源码和 [编译方法](../patch/parts/003.kernel-module/README.md#编译-tango32ko).
+本仓库不分发 `tango32.ko`. 使用者分发含 `tango32.ko` 的镜像时, 需要按 GPL-2.0 提供 Tango 集成包中的 `kernel-module/` 源码和 [编译方法](../examples/tb321fu/parts/003.kernel-module/README.md#编译-tango32ko).
 
 ### 合规审查
 
