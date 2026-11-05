@@ -1,7 +1,7 @@
-# tb321fu-tango
+# tango-porting-guide
 
 <!-- Uncomment the next line when the project has an icon -->
-<!-- <img align="right" src="../resources/logo.png" width="160" alt="tb321fu-tango"> -->
+<!-- <img align="right" src="../resources/logo.png" width="160" alt="tango-porting-guide"> -->
 
 [简体中文](../../README.md) | **English** | [Español](../es/README.md)
 

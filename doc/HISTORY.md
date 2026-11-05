@@ -47,4 +47,5 @@ V68 到 V883 是 TB321FU-GSI-Mods 前身工程的整体版本号, 不是本补�
 - 2026-10-31: 5 个模块从 `mods/tango/` 移到 Mods 的 `patches/tango/`.
 - 2026-11-01: 5 个补丁合并为一个补丁 `required/general/tango` 的 5 个部分, 补丁版本 V1.0.
 - 2026-11 初 (日期未核实): 运行时命名从 omk 改为 herald (`heraldctl`, herald 域).
-- 2026-11-05: 拆成独立仓库 tb321fu-tango.
+- 2026-11-05: 拆成独立私有仓库 tb321fu-tango.
+- 2026-11-05: 改名 tango-porting-guide 并公开, 改为通用移植教程, 补丁移到 `examples/tb321fu/` 作为参考实现.

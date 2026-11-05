@@ -6,7 +6,7 @@ metadata:
   lang: "es"
 ---
 
-# tb321fu-tango — Diseño
+# tango-porting-guide — Diseño
 
 ## Multilingüe
 

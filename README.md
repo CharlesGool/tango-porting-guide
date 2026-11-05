@@ -1,8 +1,8 @@
-# tb321fu-tango
+# tango-porting-guide
 
 **简体中文** | [English](doc/en/README.md) | [Español](doc/es/README.md)
 
-拯救者 Y700 三代 (TB321FU) 的 CPU 没有 AArch32, 刷 GSI 后不能运行 32 位 APK; 本项目是把 Tango 二进制翻译器集成进 system 镜像的 TB321FU-GSI-Mods 补丁, 免 root 运行 32 位 APK.
+CPU 不支持 AArch32 的 Android 设备跑不了 32 位 APK; 本项目讲解如何在不改源码的情况下, 把 Tango 二进制翻译器移植进已编译的 system 镜像, 免 root 运行 32 位 APK, 并提供一个真机验证过的参考实现.
 
 [![License](https://img.shields.io/badge/License-GPL--3.0--or--later-orange)](LICENSE)
 
@@ -20,93 +20,71 @@
 
 ## 简介
 
-- 用 [Tango](https://www.amanieusystems.com/) 把 32 位 ARM 程序翻译成 arm64 执行, 32 位 APK 可以安装和运行, 不需要 root.
-- 补丁 `tango` 由 5 个部分组成: 翻译器和 `binfmt_misc` 注册, SELinux 策略, `tango32` 内核模块, 32 位 GPU 库, 32 位 zygote 和开机保险. 每个部分的说明见 [patch/README.md](patch/README.md).
-- 解决了联想 vendor 上声明 32 位 ABI 后的开机循环和整机重启问题, 原因见[调研记录](doc/research.md).
-- V883 (2026-10-31) 真机测试通过. 已知问题见 [LOG](doc/LOG.md#缺陷).
+| 内容 | 说明 |
+| --- | --- |
+| [移植教程](doc/porting-guide.md) | 前提检查, 6 个移植步骤, 分阶段验证和排错表 |
+| [调研记录](doc/research.md) | 与小米 14 Ultra, 一加 12, 一加 13T 官方集成的逐项对照; 声明 32 位 ABI 后整机重启的真因 (高通 WALT 调度器的 32 位任务检查); QEMU 测试 |
+| [参考实现](examples/tb321fu/README.md) | 拯救者 Y700 三代 TB321FU (骁龙 8 Gen 3, Android 15) 的完整补丁, V883 (2026-10-31) 真机运行 32 位 APK 正常 |
 
-本仓库是该补丁的唯一来源. [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的 `patches/required/general/tango/` 是同步副本.
+[Tango](https://www.amanieusystems.com/) 是 Amanieu Systems 的 ARM32→ARM64 二进制翻译器. 它的官方集成方式是给 AOSP 源码打补丁; 本项目的方法只改写 system 镜像, 适用于 GSI 和拿不到源码的 ROM.
+
+参考实现之外的设备和 Android 版本没有验证. 已知问题见 [LOG](doc/LOG.md#缺陷).
 
 ## 要求
 
-- 拯救者 Y700 三代 (TB321FU), 原厂联想 Android 15 vendor, boot 内核为 GKI `6.1.112-android14-11-gd03cb1d7abcd-ab12592111`
-- 用 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 构建 system 镜像, 并启用 [herald-core](https://github.com/CharlesGool/herald-core) 补丁
-- 使用者自备, **禁止**提交到仓库或放进分发的刷机包:
-  - Tango v2.1.0 集成包 (需要 `prebuilts/tango_translator`), 从 Amanieu Systems 获取, 遵守其 EULA
-  - 按上述内核编译的 `tango32.ko`, 编法见 [kernel-module](patch/parts/003.kernel-module/README.md#编译-tango32ko)
-  - 小米 14 Ultra xiaomi.eu OS3.0.304.0 `vendor/lib` 中的 30 个 32 位库, 文件清单见 [manifest.sha256](patch/parts/004.vendor-lib32/manifest.sha256)
-  - 原厂 vendor 镜像
+- arm64 设备, CPU 没有 AArch32; 内核 ≥ 5.6 并开启 `CONFIG_COMPAT` 和 `CONFIG_BINFMT_MISC`
+- 能拿到设备内核的源码和配置, 用来编译 `tango32.ko`
+- system 镜像带 32 位库 (`app_process32`, 32 位 bionic 和 framework 原生库)
+- Bootloader 已解锁, 能修改并刷入 system 镜像
+- Tango 集成包, 从 Amanieu Systems 获取并接受其 EULA
+
+逐项检查方法见[移植教程的前提](doc/porting-guide.md#前提).
 
 ## 安装
 
-本项目不单独安装, 由 TB321FU-GSI-Mods 在构建时打进 system 镜像.
+本项目是教程和参考实现, 无需安装.
 
 ### 快速安装
 
-TB321FU-GSI-Mods 已带同步副本, 默认构建就包含本补丁. 把上述输入放到 Mods 仓库的默认位置后构建:
-
 ```bash
-make 9008 NOTE="tango"
+git clone https://github.com/CharlesGool/tango-porting-guide.git
 ```
-
-默认位置是 Mods 仓库的 `private/tango/pkg/`, `private/tango/tango32.ko`, `private/xiaomi-vendor-lib32/`.
 
 ### 常规安装
 
-用本仓库的版本替换 Mods 中的副本, 再构建:
+参考实现是 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的补丁, Mods 的 `patches/required/general/tango/` 是 `examples/tb321fu/` 的同步副本. 用本仓库的版本更新 Mods 中的副本:
 
 ```bash
-rsync -a --delete patch/ <TB321FU-GSI-Mods>/patches/required/general/tango/
+rsync -a --delete examples/tb321fu/ <TB321FU-GSI-Mods>/patches/required/general/tango/
 ```
 
 ## 指南
 
-### 参数
+1. 按[前提](doc/porting-guide.md#前提)检查目标设备.
+2. 按[移植教程](doc/porting-guide.md)的步骤 1 到 6 改写 system 镜像, 每一步对照[参考实现](examples/tb321fu/README.md)的对应部分.
+3. 先刷阶段 1 (不声明 32 位 ABI), 验证翻译器和内核模块, 再刷阶段 2, 见[验证](doc/porting-guide.md#验证).
+4. 开不了机或整机重启时查[排错表](doc/porting-guide.md#排错).
 
-参数在 Mods 的 `devices/<设备>/conf.d/tango.conf` 中设置, 同名环境变量优先.
+参考实现的构建参数:
 
 | 参数 | 含义 |
 | --- | --- |
 | `TANGO_PKG` | Tango 集成包目录 |
 | `TANGO32_KO` | `tango32.ko` 路径 |
 | `TANGO_KERNEL_RELEASE` | 目标内核发布串, 构建时与 .ko 的 `vermagic` 核对 |
-| `XIAOMI_LIB32_DIR` | 32 位库目录, 结构同 `/vendor/lib` |
-| `STOCK_VENDOR_IMG` | 原厂 vendor 镜像 (Mods 的 `device.conf` 已设置) |
-| `TANGO_DEBUG` | 翻译器日志级别 `off`, `info` 或 `debug`; 不是 `off` 时写到 `/metadata/tango_log` |
-
-### 检查和排错
-
-```bash
-adb shell heraldctl tango status        # 模块, 32 位 ABI, 是否回退
-adb shell heraldctl tango logs          # 导出日志到 /data/local/tmp/tango_log
-adb pull /data/local/tmp/tango_log
-```
-
-其他命令和开机保险见 [zygote32](patch/parts/005.zygote32/README.md#heraldctl-命令).
+| `XIAOMI_LIB32_DIR` | 32 位 GPU 库目录, 结构同 `/vendor/lib` |
+| `STOCK_VENDOR_IMG` | 原厂 vendor 镜像 |
+| `TANGO_DEBUG` | 翻译器日志级别 `off`, `info` 或 `debug` |
 
 ## 卸载
 
-### 快速卸载
-
-不刷机, 立即关闭翻译, 重启后恢复 (32 位 ABI 仍声明, 32 位 APK 无法运行):
-
-```bash
-adb shell setprop tango.enabled 0
-```
-
-### 完全卸载
-
-在 Mods 中去掉本补丁重新构建并刷机:
-
-```bash
-make 9008 WITHOUT=tango NOTE="不带 32 位"
-```
+无需卸载, 删除克隆的目录即可. 从设备上去掉 Tango 要刷回不含它的 system 镜像; 参考实现用 `make 9008 WITHOUT=tango` 重新构建.
 
 ## 致谢
 
-- [Tango](https://www.amanieusystems.com/) by Amanieu Systems: 翻译器, `tango32` 内核模块和 SELinux 策略的来源
+- [Tango](https://www.amanieusystems.com/) by Amanieu Systems: 翻译器, `tango32` 内核模块, binfmt 注册和 SELinux 策略的来源
 - 小米 14 Ultra 和一加 12 的官方 Tango 集成: 32 位 zygote 和 ART GC 做法的参照
 
 ## 许可证
 
-本项目以 GNU General Public License v3.0 或更新版本授权, SPDX 标识符 `GPL-3.0-or-later`, 全文见 [LICENSE](LICENSE). Tango, `tango32` 模块和小米的库不随本项目分发, 各自的授权见 [THIRD_PARTY_NOTICES](doc/THIRD_PARTY_NOTICES.md).
+本项目以 GNU General Public License v3.0 或更新版本授权, SPDX 标识符 `GPL-3.0-or-later`, 全文见 [LICENSE](LICENSE). Tango, `tango32` 模块和其他厂商的 32 位库不随本项目分发, 各自的授权见 [THIRD_PARTY_NOTICES](doc/THIRD_PARTY_NOTICES.md).

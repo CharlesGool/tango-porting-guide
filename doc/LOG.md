@@ -52,14 +52,16 @@ metadata:
 | 2026-10-31 | 换用一加 12 的 32 位 GPU 库 | 拒绝 | 真因是 WALT 自检, 现有库在真机上正常. |
 | 2026-11-01 | 5 个独立补丁合并为一个补丁的 5 个部分 | 接受 | 各部分功能上必须一起使用. |
 | 2026-11-05 | 拆成独立仓库, 作为补丁的唯一来源, Mods 保留同步副本 | 接受 | 与 herald-core 的组织方式一致, 便于单独维护和发布. |
+| 2026-11-05 | 仓库改名 tango-porting-guide 并公开, 定位为通用移植教程, TB321FU 补丁作为参考实现放在 `examples/tb321fu/` | 接受 | 用户要求公开如何移植 Tango, 名称不带设备名. |
 
 ## 交接
 
 - 当前分支: `main`.
-- 已完成: 从 TB321FU-GSI-Mods `main` 提取 `patches/required/general/tango/` 到 `patch/`, 代码未改; 按项目模板建立文档; 补丁说明按现行代码订正 (insmod 时机, 开机保险默认 `ENFORCE=0`, `TANGO_DEBUG` 默认值); 调研记录整理为 [research.md](research.md).
-- 检查: shell 脚本 `bash -n` 和 Python `py_compile` 通过; 文档相对链接检查通过. 本仓库内没有可运行的构建或测试, 补丁未在本仓库重新构建.
+- 已完成: 从 TB321FU-GSI-Mods `main` 提取 Tango 补丁 (代码未改) 到 `examples/tb321fu/`; 按项目模板建立文档; 补丁说明按现行代码订正; 调研记录整理为 [research.md](research.md); 编写通用[移植教程](porting-guide.md); 仓库改名为 tango-porting-guide 并公开.
+- 检查: shell 脚本 `bash -n` 和 Python `py_compile` 通过; 文档相对链接和外部链接检查通过. 本仓库内没有可运行的构建或测试, 参考实现未在本仓库重新构建, 教程未在第二台设备上验证.
 - 剩余步骤:
-  - [ ] 在 Mods 中改为从本仓库同步 `patch/` (参照 herald-core 的 `make sync-core`), 并让 Mods 文档指向本仓库.
+  - [ ] 在 Mods 中改为从本仓库同步 `examples/tb321fu/` (参照 herald-core 的 `make sync-core`), 并让 Mods 文档指向本仓库.
   - [ ] 修复 `heraldctl tango off` 在 `ENFORCE=0` 时不生效的缺陷.
+  - [ ] 向 Amanieu Systems 确认 Tango 集成文件 (binfmt 注册串, sepolicy) 的授权, 见 [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md#合规审查).
 - 阻碍: 无.
 - 临时项目规则: 未发现.

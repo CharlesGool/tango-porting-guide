@@ -6,7 +6,7 @@ metadata:
   lang: "zh-CN"
 ---
 
-# tb321fu-tango — 设计
+# tango-porting-guide — 设计
 
 ## 多语言
 
@@ -26,18 +26,22 @@ metadata:
 
 ## 设计目标
 
-- [x] TB321FU 刷 GSI 后免 root 安装和运行 32 位 APK.
-- [x] 不修改 framework 和原厂 vendor 分区, 所有改动都在 system 镜像内.
-- [x] Tango 出问题时系统仍能开机, 只影响 32 位 app.
-- [x] 构建时发现输入或底包不匹配就停止, 不产出开不了机的镜像.
-- [x] 仓库和分发的刷机包不含 Tango 和小米的专有文件.
+- [x] 讲清在不改源码的情况下, 把 Tango 移植进已编译的 Android system 镜像的通用步骤.
+- [x] 提供一个真机验证过的完整参考实现 (TB321FU, Android 15).
+- [x] 参考实现不修改 framework 和原厂 vendor 分区, 所有改动都在 system 镜像内.
+- [x] 参考实现在 Tango 出问题时仍能开机, 只影响 32 位 app.
+- [x] 参考实现在构建时发现输入或底包不匹配就停止, 不产出开不了机的镜像.
+- [x] 仓库不含 Tango 和其他厂商的专有文件.
+- [ ] 在第二台设备或另一个 Android 版本上验证教程.
 - [ ] 按需启动 32 位 zygote (需要修改 framework).
 - [ ] 预翻译 32 位库 (需要修改 framework 和 installd 源码).
-- 非目标: 支持 TB321FU 以外的设备, 或脱离 TB321FU-GSI-Mods 单独构建.
+- 非目标: 提供可直接刷入的镜像, 或脱离 TB321FU-GSI-Mods 构建参考实现.
 
 ## 架构
 
-本项目是 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的一个补丁. Mods 的构建系统读取 `patch/patch.conf`, 执行 `patch/apply.sh`; `apply.sh` 先确认 herald-core 已打, 再用 Mods 的 `run_parts` 按编号执行 5 个部分的 `part.sh`. `part.sh` 使用 Mods 提供的函数 (`put`, `put_dir`, `prop`, `append`, `need_input`, `need_file`, `die` 等) 改写 system 树.
+项目由教程文档和参考实现组成. [移植教程](porting-guide.md)按步骤讲通用方法, 每一步链接到参考实现的对应部分; [调研记录](research.md)给出依据.
+
+参考实现是 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的一个补丁. Mods 的构建系统读取 `examples/tb321fu/patch.conf`, 执行 `apply.sh`; `apply.sh` 先确认 herald-core 已打, 再用 Mods 的 `run_parts` 按编号执行 5 个部分的 `part.sh`. `part.sh` 使用 Mods 提供的函数 (`put`, `put_dir`, `prop`, `append`, `need_input`, `need_file`, `die` 等) 改写 system 树.
 
 ```mermaid
 flowchart LR
@@ -49,25 +53,26 @@ flowchart LR
   herald --> zygote
 ```
 
-4 个基础部分之间没有构建依赖, 单独打入都不影响开机; `005.zygote32` 声明 32 位 ABI, 功能上需要前 4 个部分. 各部分的原理和开机顺序见 [patch/README.md](../patch/README.md).
+4 个基础部分之间没有构建依赖, 单独打入都不影响开机; `005.zygote32` 声明 32 位 ABI, 功能上需要前 4 个部分. 各部分的原理和开机顺序见 [参考实现说明](../examples/tb321fu/README.md).
 
 | 顶层目录 | 职责 |
 | --- | --- |
-| `patch/` | 补丁本体, 同步到 Mods 的 `patches/required/general/tango/`. `patch.conf` 是元数据, `apply.sh` 是入口, `parts/NNN.<部分>/` 下是各部分的脚本, rc, 策略和说明 |
-| `doc/` | 项目文档; [research.md](research.md) 是调研记录 |
+| `examples/` | 参考实现, 每个设备一个子目录. `tb321fu/` 同步到 Mods 的 `patches/required/general/tango/`; `patch.conf` 是元数据, `apply.sh` 是入口, `parts/NNN.<部分>/` 下是各部分的脚本, rc, 策略和说明 |
+| `doc/` | 项目文档; [porting-guide.md](porting-guide.md) 是移植教程, [research.md](research.md) 是调研记录 |
 | `third_party/` | 第三方许可证原文, 每个来源一个子目录 |
 
 本项目没有界面文本, 也没有构建输出; 构建输出在 Mods 的 `out/`.
 
 ## 设计约束
 
-- `tango_translator`, Tango 集成包, `tango32.ko` 和小米的 32 位库**禁止**进仓库. `.gitignore` 忽略 `private/`.
-- **禁止**修改 `ro.zygote`. 32 位 zygote 服务名**禁止**用 `zygote_secondary`, socket 名**必须**是 `zygote_secondary`.
+- `tango_translator`, Tango 集成包, `tango32.ko` 和其他厂商的 32 位库**禁止**进仓库. `.gitignore` 忽略 `private/`.
+- 教程中未在真机验证的内容**必须**标为需确认.
+- 参考实现**禁止**修改 `ro.zygote`. 32 位 zygote 服务名**禁止**用 `zygote_secondary`, socket 名**必须**是 `zygote_secondary`.
 - 32 位 zygote 服务**禁止**带 `onrestart restart zygote`.
 - `tango32.ko` 的 `vermagic` **必须**等于 `TANGO_KERNEL_RELEASE`; 32 位库**必须**与 `manifest.sha256` 一致. 不一致时构建停止.
 - 声明 32 位 ABI 后会触发的原厂 vendor 服务, 带 `reboot_on_failure` 或 `critical` 的**必须**被接管, 否则构建停止.
 - 开机保险**必须**在 `zygote-start` 之前 (`post-fs-data` 的 `exec_start`) 关闭 WALT 32 位自检并置 `tango.zygote32`.
-- `patch/` 的修改**必须**先在本仓库提交, 再同步到 Mods.
+- `examples/tb321fu/` 的修改**必须**先在本仓库提交, 再同步到 Mods.
 
 ## 数据设计
 
