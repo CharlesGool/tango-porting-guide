@@ -9,7 +9,7 @@ metadata:
 
 # Tango 调研记录
 
-本文记录 Tango 在 TB321FU (骁龙 8 Gen 3, 联想 Android 15 vendor) 上从不能开机到 32 位 APK 正常运行的技术依据: 最终做法, 与同平台厂商集成的对照, 整机重启的真因和 QEMU 测试结果. 各版本的真机现象按时间记录在 [HISTORY](HISTORY.md#真机测试经过).
+本文记录 Tango 在 TB321FU (骁龙 8 Gen 3, 联想 Android 15 vendor) 上从不能开机到 32 位 APK 正常运行的技术依据: 最终做法, 与同平台厂商集成的对照, 整机重启的真因和 QEMU 测试结果. 各版本的真机现象按时间记录在 [tb321fu-tango-patch 的 HISTORY](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/doc/HISTORY.md#真机测试经过), 实现见该仓库.
 
 V883 (2026-10-31) 真机带全部 5 个部分开机, 32 位 APK 正常运行.
 

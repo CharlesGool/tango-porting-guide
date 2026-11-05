@@ -24,11 +24,11 @@ CPU 不支持 AArch32 的 Android 设备跑不了 32 位 APK; 本项目讲解如
 | --- | --- |
 | [移植教程](doc/porting-guide.md) | 前提检查, 6 个移植步骤, 分阶段验证和排错表 |
 | [调研记录](doc/research.md) | 与小米 14 Ultra, 一加 12, 一加 13T 官方集成的逐项对照; 声明 32 位 ABI 后整机重启的真因 (高通 WALT 调度器的 32 位任务检查); QEMU 测试 |
-| [参考实现](examples/tb321fu/README.md) | 拯救者 Y700 三代 TB321FU (骁龙 8 Gen 3, Android 15) 的完整补丁, V883 (2026-10-31) 真机运行 32 位 APK 正常 |
+| [参考实现](https://github.com/CharlesGool/tb321fu-tango-patch) | 拯救者 Y700 三代 TB321FU (骁龙 8 Gen 3, Android 15) 的完整补丁, V883 (2026-10-31) 真机运行 32 位 APK 正常 |
 
 [Tango](https://www.amanieusystems.com/) 是 Amanieu Systems 的 ARM32→ARM64 二进制翻译器. 它的官方集成方式是给 AOSP 源码打补丁; 本项目的方法只改写 system 镜像, 适用于 GSI 和拿不到源码的 ROM.
 
-参考实现之外的设备和 Android 版本没有验证. 已知问题见 [LOG](doc/LOG.md#缺陷).
+参考实现之外的设备和 Android 版本没有验证. 参考实现的已知问题见 [tb321fu-tango-patch 的 LOG](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/doc/LOG.md#缺陷).
 
 ## 要求
 
@@ -52,33 +52,26 @@ git clone https://github.com/CharlesGool/tango-porting-guide.git
 
 ### 常规安装
 
-参考实现是 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的补丁, Mods 的 `patches/required/general/tango/` 是 `examples/tb321fu/` 的同步副本. 用本仓库的版本更新 Mods 中的副本:
+参考实现在独立仓库 [tb321fu-tango-patch](https://github.com/CharlesGool/tb321fu-tango-patch), 是 [TB321FU-GSI-Mods](https://github.com/CharlesGool/TB321FU-GSI-Mods) 的补丁. 构建参数和使用方法见该仓库.
 
 ```bash
-rsync -a --delete examples/tb321fu/ <TB321FU-GSI-Mods>/patches/required/general/tango/
+git clone https://github.com/CharlesGool/tb321fu-tango-patch.git
 ```
 
 ## 指南
 
 1. 按[前提](doc/porting-guide.md#前提)检查目标设备.
-2. 按[移植教程](doc/porting-guide.md)的步骤 1 到 6 改写 system 镜像, 每一步对照[参考实现](examples/tb321fu/README.md)的对应部分.
+2. 按[移植教程](doc/porting-guide.md)的步骤 1 到 6 改写 system 镜像, 每一步对照[参考实现](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/README.md)的对应部分.
 3. 先刷阶段 1 (不声明 32 位 ABI), 验证翻译器和内核模块, 再刷阶段 2, 见[验证](doc/porting-guide.md#验证).
 4. 开不了机或整机重启时查[排错表](doc/porting-guide.md#排错).
 
-参考实现的构建参数:
+## 升级
 
-| 参数 | 含义 |
-| --- | --- |
-| `TANGO_PKG` | Tango 集成包目录 |
-| `TANGO32_KO` | `tango32.ko` 路径 |
-| `TANGO_KERNEL_RELEASE` | 目标内核发布串, 构建时与 .ko 的 `vermagic` 核对 |
-| `XIAOMI_LIB32_DIR` | 32 位 GPU 库目录, 结构同 `/vendor/lib` |
-| `STOCK_VENDOR_IMG` | 原厂 vendor 镜像 |
-| `TANGO_DEBUG` | 翻译器日志级别 `off`, `info` 或 `debug` |
+暂无.
 
 ## 卸载
 
-无需卸载, 删除克隆的目录即可. 从设备上去掉 Tango 要刷回不含它的 system 镜像; 参考实现用 `make 9008 WITHOUT=tango` 重新构建.
+无需卸载, 删除克隆的目录即可. 从设备上去掉 Tango 要刷回不含它的 system 镜像.
 
 ## 致谢
 
@@ -87,4 +80,4 @@ rsync -a --delete examples/tb321fu/ <TB321FU-GSI-Mods>/patches/required/general/
 
 ## 许可证
 
-本项目以 GNU General Public License v3.0 或更新版本授权, SPDX 标识符 `GPL-3.0-or-later`, 全文见 [LICENSE](LICENSE). Tango, `tango32` 模块和其他厂商的 32 位库不随本项目分发, 各自的授权见 [THIRD_PARTY_NOTICES](doc/THIRD_PARTY_NOTICES.md).
+本项目以 GNU General Public License v3.0 或更新版本授权, SPDX 标识符 `GPL-3.0-or-later`, 全文见 [LICENSE](LICENSE). 本项目不包含 Tango, `tango32` 模块和其他厂商的 32 位库, 见 [THIRD_PARTY_NOTICES](doc/THIRD_PARTY_NOTICES.md).

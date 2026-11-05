@@ -9,7 +9,7 @@ metadata:
 
 # Tango 移植教程
 
-本文说明如何在 CPU 不支持 AArch32 的 arm64 Android 设备上, 用 Tango 二进制翻译器让 32 位 APK 免 root 安装和运行. Tango 集成包的官方做法是给 AOSP 源码打补丁 (参考设备 Pixel 6); 本文针对拿不到或不想重编源码的情况, 直接改写已编译的 system 镜像, 不改 framework 和 vendor 分区. 每一步都对应 [TB321FU 参考实现](../examples/tb321fu/README.md)中的文件, 该实现在拯救者 Y700 三代 (骁龙 8 Gen 3, Android 15) 上真机验证通过. 其他设备和 Android 版本未验证, 文中标为 "需确认" 的地方要在目标设备上实测.
+本文说明如何在 CPU 不支持 AArch32 的 arm64 Android 设备上, 用 Tango 二进制翻译器让 32 位 APK 免 root 安装和运行. Tango 集成包的官方做法是给 AOSP 源码打补丁 (参考设备 Pixel 6); 本文针对拿不到或不想重编源码的情况, 直接改写已编译的 system 镜像, 不改 framework 和 vendor 分区. 每一步都对应 [TB321FU 参考实现](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/README.md)中的文件, 该实现在拯救者 Y700 三代 (骁龙 8 Gen 3, Android 15) 上真机验证通过. 其他设备和 Android 版本未验证, 文中标为 "需确认" 的地方要在目标设备上实测.
 
 ## 原理
 
@@ -41,7 +41,7 @@ Tango 是进程级翻译, 不是 native bridge:
 3. 用属性 (参考实现为 `tango.enabled`) 在运行时开关 `/proc/sys/fs/binfmt_misc/tango_translator`, 方便排错.
 4. 开发阶段把翻译器日志目录放在 `/metadata` 下: 它在 first-stage 挂载, 开机循环时也能保留.
 
-参考: [001.core](../examples/tb321fu/parts/001.core/README.md).
+参考: [001.core](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/001.core/README.md).
 
 ## 步骤 2: SELinux
 
@@ -52,18 +52,18 @@ Tango 是进程级翻译, 不是 native bridge:
 
 对 `appdomain` 开 `execmem` 违反 AOSP 的 neverallow, 会降低所有 app 的加固; 这是 Tango 官方策略本身的要求.
 
-参考: [002.sepolicy](../examples/tb321fu/parts/002.sepolicy/README.md).
+参考: [002.sepolicy](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/002.sepolicy/README.md).
 
 ## 步骤 3: tango32 内核模块
 
 1. **必须**用设备内核的同一份源码和配置编译 `tango32.ko`. GKI 开了 `TRIM_UNUSED_KSYMS`, 源码或配置不同会导致 `Unknown symbol` 或 `disagrees about version of symbol`.
-2. GKI 设备: 从 `uname -r` 得到 tag 和 build number, 用 Kleaf 编出内核和模块, 核对自编 `Image` 的 UTS_RELEASE 和 .ko 的 `vermagic` 都与设备一致. 具体命令见[参考实现的编译方法](../examples/tb321fu/parts/003.kernel-module/README.md#编译-tango32ko).
+2. GKI 设备: 从 `uname -r` 得到 tag 和 build number, 用 Kleaf 编出内核和模块, 核对自编 `Image` 的 UTS_RELEASE 和 .ko 的 `vermagic` 都与设备一致. 具体命令见[参考实现的编译方法](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/003.kernel-module/README.md#编译-tango32ko).
 3. 在第一个 32 位进程启动之前加载模块. 厂商集成把它放在 vendor 模块列表里由 first-stage init 加载; 只改 system 时, 在 `post-fs-data` 用 `exec_start` 运行的 root 服务加载即可. 参考实现中 init 自己在 `early-init` 的 `insmod` 没有加载成功, 原因未查明.
 4. 用 ueventd 把 `/dev/tango32` 设为 0666.
 
 模块为 GPL-2.0. 分发含 `tango32.ko` 的镜像时需要提供源码.
 
-参考: [003.kernel-module](../examples/tb321fu/parts/003.kernel-module/README.md).
+参考: [003.kernel-module](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/003.kernel-module/README.md).
 
 ## 步骤 4: 32 位 GPU 库
 
@@ -76,7 +76,7 @@ Tango 是进程级翻译, 不是 native bridge:
 
 32 位与 64 位驱动版本不同时, 与内核 KGSL 的兼容性需确认.
 
-参考: [004.vendor-lib32](../examples/tb321fu/parts/004.vendor-lib32/README.md).
+参考: [004.vendor-lib32](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/004.vendor-lib32/README.md).
 
 ## 步骤 5: 声明 32 位 ABI 和 32 位 zygote
 
@@ -91,7 +91,7 @@ Tango 是进程级翻译, 不是 native bridge:
 
 不修改 framework 时, 32 位 zygote 必须在开机时启动: `abilist32` 一声明, system_server 开机完成时就会连接它. 小米和一加的按需启动依赖 framework 补丁.
 
-参考: [005.zygote32](../examples/tb321fu/parts/005.zygote32/README.md).
+参考: [005.zygote32](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/005.zygote32/README.md).
 
 ## 步骤 6: 处理声明 32 位 ABI 引发的问题
 
@@ -99,7 +99,7 @@ Tango 是进程级翻译, 不是 native bridge:
 
 `abilist32` 非空后, 开机早期会同步运行 32 位 BoringSSL 自检, vendor 的那个通常带 `reboot_on_failure`. 出厂不支持 32 位的 vendor 往往没有 `boringssl_self_test32`, 结果是开机循环, `sys.boot.reason.last` 为 `reboot,boringssl-self-check-failed`.
 
-1. 扫描原厂 vendor 和 odm 的全部 init rc, 找出带 `reboot_on_failure` 或 `critical`, 程序是 32 位或不存在, 又会因 `abilist32` 触发的服务. 参考实现的 [check_vendor32.py](../examples/tb321fu/parts/005.zygote32/check_vendor32.py) 在构建时做这件事.
+1. 扫描原厂 vendor 和 odm 的全部 init rc, 找出带 `reboot_on_failure` 或 `critical`, 程序是 32 位或不存在, 又会因 `abilist32` 触发的服务. 参考实现的 [check_vendor32.py](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/005.zygote32/check_vendor32.py) 在构建时做这件事.
 2. 在 `/system/etc/init` 先定义同名服务, 换成 64 位程序. `/system/etc/init` 比 `/vendor/etc/init` 先解析, vendor 的同名定义没有 `override` 时被丢弃. 替身**禁止**用 `/system/bin/true`, init 没有到 `toolbox_exec` 的域转换.
 
 ### 调度器的 32 位任务检查
@@ -137,7 +137,7 @@ Tango 是进程级翻译, 不是 native bridge:
 
    再安装一个 32 位 APK, 测试使用 GL 和 Vulkan 的界面.
 
-开发阶段建议加一个开机保险: 在 `post-fs-data` 检查模块和上次开机是否稳定, 不满足时撤掉 32 位 ABI 按纯 64 位开机, 并保存 `/sys/fs/pstore`. 参考实现的 `tango-guard.sh` 可以照搬, 见 [005.zygote32](../examples/tb321fu/parts/005.zygote32/README.md#开机保险).
+开发阶段建议加一个开机保险: 在 `post-fs-data` 检查模块和上次开机是否稳定, 不满足时撤掉 32 位 ABI 按纯 64 位开机, 并保存 `/sys/fs/pstore`. 参考实现的 `tango-guard.sh` 可以照搬, 见 [005.zygote32](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/patch/parts/005.zygote32/README.md#开机保险).
 
 ## 排错
 

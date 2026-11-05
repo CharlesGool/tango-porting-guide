@@ -25,3 +25,5 @@ metadata:
 - Avisos de terceros: [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES.md)
 
 ## Historial de cambios
+
+Nada por ahora.

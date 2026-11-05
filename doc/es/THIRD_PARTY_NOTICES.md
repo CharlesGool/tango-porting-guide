@@ -28,12 +28,16 @@ metadata:
 
 ### Componentes
 
-| Componente | Versión o hash | URL de origen | Licencia | Uso | Titular de los derechos | Obligaciones de distribución | Verificado el |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| <name> | <version or commit> | <upstream URL> | <SPDX ID> | <usage> | <copyright holder> | <obligations> | YYYY-MM-DD |
+Nada por ahora. Este proyecto contiene solo documentación y no incluye código, binarios ni datos de terceros. Tango (software propietario de Amanieu Systems), el módulo del kernel `tango32` (GPL-2.0) y las bibliotecas del firmware de otros fabricantes mencionados en la guía deben ser obtenidos por el usuario; los avisos de terceros de la implementación de referencia están en [tb321fu-tango-patch](https://github.com/CharlesGool/tb321fu-tango-patch/blob/main/doc/THIRD_PARTY_NOTICES.md).
 
 ### Textos de licencia
 
+Nada por ahora.
+
 ### Oferta de código fuente
 
+Nada por ahora.
+
 ### Revisión de cumplimiento
+
+Nada por ahora.
